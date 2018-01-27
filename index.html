@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset=utf-8 />
+	<title>Analysis of Household Composition and Location in West Virginia</title>
+	<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css" />
+	<link rel="stylesheet" href='http://fonts.googleapis.com/css?family=Lato' />
+
+	<style>
+		/* custom styles here */
+		body {
+			background: #0c0c0c;
+			font-family: Lato, sans-serif;
+		}
+		.container {
+			margin-top: 3rem;
+		}
+		#intro {
+			height: 100vh;
+			width: auto;
+			padding: 5px 5px;
+			background-image: url('img/intro.jpg');
+			background-size: cover;
+		}
+		#map {
+			border: 2px solid #d3d3d3;
+			height: 540px;
+			margin-bottom: 36px;
+		}
+		.leaflet-tooltip {
+			min-width: 140px;
+			font-size: 140%;
+			white-space: normal;
+		}
+		#legend {
+			padding: 6px 8px;
+			font-size: 1em;
+			background: rgba(255, 255, 255, 0.8);
+			box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+			border-radius: 5px;
+			max-width: 165px;
+		}
+		#legend h5 {
+			font-size: 2.1rem;
+		}
+		#legend span {
+			width: 20px;
+			height: 20px;
+			float: left;
+			margin: 0 10px 4px 0;
+		}
+		#legend label {
+			font-size: 1.2em;
+		}
+		#legend label:after {
+			content: '';
+			display: block;
+			clear: both;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="intro">
+		<div class="container">
+			<div class="row">
+				<div class="twelve columns" style="color:#ffffff">
+					<h1>Families, Housing, and Challenges</h1>
+					<h4>Analysis of Household Composition and Location in West Virginia</h4>
+				</div>
+			</div>
+			<div class="row">
+				<div class="five columns">
+					<p style="color:#ffffff; text-align:justify">
+						In West Virginia, almost half a million children receive food stamps, almost a quarter of a million are enrolled in Medicaid, and almost 100,000 households receive some form of assistance.<br>
+						<br>
+						Out of approximately 722,000 households, almost 50,000 of them pay more than 50% of their income on housing which can place an extreme burden on single-parent or single-income households.<br>
+						<br>
+						In order to better understand where in West Virginia these issues are of greatest concern, we will first map the spatial distribution of households across five categories based on gender and parent structure.<br>
+					</p>
+					<a class="button button-primary" href="#map-section">See the Map</a>
+				</div>
+				<div class="seven columns"></div>
+			</div>
+		</div>
+	</div>
+	<div id="map-section" class="container">
+		<div class="row">
+			<div class="twelve columns" style="color:#ffffff">
+				<h3 style="margin-bottom:0">Household by Gender and Marital Status of Parent</h3>
+				<h5 style="margin-top:0">County Level Analysis of West Virginia - 2010</h5>
+			</div>
+		</div>
+		<div class="row">
+			<div id='map' class="ten columns"></div>
+			<div class="two columns" style="color:#ffffff; text-align:justify">
+				<p>In the map to the left, we can see areas of higher density for married couples in darker blue while areas of lower density are in yellow or green (see the <b style="color:#e5bb24">legend in the upper left</b>). We can then select from the <b style="color:#e5bb24">drop down in the upper right</b> male and female householders sans spouse. Notice the percentage differences between the groups.</p>
+			</div>
+		</div>
+		<section class="row" style="color:#ffffff">
+			<div class="three columns">
+				<ul>
+					<li>Author: <a target="_blank" href="https://thejoeblankenship.com/nmp_portfolio/">Joe Blankenship</a></li>
+					<li>Created: 26 January, 2018</li>
+				</ul>
+			</div>
+			<div class="six columns">
+				<p>
+					This map is based on <a target="_blank" href="https://factfinder.census.gov">2010 US Census data</a> on household statistics for the state of West Virginia (<a href="https://www.census.gov/geo/maps-data/data/cbf/cbf_counties.html" target="_blank">2010 county data</a>). This map is projected in WGS-84.<br>
+					Additional sources: <a href="https://spotlightonpoverty.org/states/west-virginia/" target="_blank">Spotlight on Poverty & Opportunity</a>
+				</p>
+			</div>
+			<div class="three columns u-pull-right">
+				<a class="button button-primary" href="#intro">Top of Page</a>
+			</div>
+		</section>
+	</div>
+
+	<!-- legend div is selected by the JS and dynamically added to the map -->
+	<div id="legend"></div>
+
+	<!-- ui-controls div is selected by the JS and dynamically added to the map -->
+	<div id="ui-controls">
+		<select id="occupied">
+			<option value="HC02_EST_VC02" selected>Married-couple family household</option>
+			<option value="HC03_EST_VC02">Male householder, no wife present</option>
+			<option value="HC04_EST_VC02">Female householder, no husband present</option>
+		</select>
+	</div>
+
+	<script src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
+	<script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script>
+	<script src="https://unpkg.com/simple-statistics@5.2.1/dist/simple-statistics.min.js"></script>
+
+	<script>
+		// autoscroll navigation
+		$("div").find("a").click(function(e) {
+			e.preventDefault();
+
+			var section = $(this).attr("href");
+
+			$("html, body").animate({
+				scrollTop: $(section).offset().top
+			});
+		});
+
+		// initial map options, disabling pan/zoom
+		var options = {
+			scrollWheelZoom: false,
+			zoomSnap: .1,
+			dragging: false,
+			zoomControl: false
+		}
+
+		// create Leaflet map and apply options
+		var map = L.map('map', options);
+
+		// set the map base layer
+		var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+		var osmAttrib = 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+		var grayscale = L.tileLayer(osmUrl, {id: 'map', attribution: osmAttrib, opacity: 0.5}).addTo(map);
+
+		// set global variables for map layer,
+		// mapped attribute, and normalizing attribute
+		var attributeValue = "HC02_EST_VC02",
+			normValue = "HC01_EST_VC02";
+
+		// create object to hold legend titles
+		var labels = {
+			"HC02_EST_VC02": "Married-couple family household",
+			"HC03_EST_VC02": "Male householder, no wife present",
+			"HC04_EST_VC02": "Female householder, no husband present"
+		}
+
+		// AJAX call to load county-level data
+		$.getJSON("data/wv_houshold.json", function(data) {
+
+			drawMap(data); // draw the map using GeoJSON data
+
+		});
+
+		function drawMap(data) {
+
+			// create Leaflet data layer and add to map
+			var dataLayer = L.geoJson(data, {
+				style: function(feature) {
+					// style counties with initial default path options
+					return {
+						color: '#dddddd',
+						weight: 2,
+						fillOpacity: 1,
+						fillColor: '#1f78b4'
+					};
+				},
+				onEachFeature: function(feature, layer) {
+
+					// when mousing over a layer
+					layer.on('mouseover', function() {
+
+						// change the stroke color and bring that element to the front
+						layer.setStyle({
+							color: '#ff6e00'
+						}).bringToFront();
+					});
+
+					// on mousing off layer
+					layer.on('mouseout', function() {
+
+						// reset the layer style to its original stroke color
+						layer.setStyle({
+							color: '#dddddd'
+						});
+					});
+				}
+			}).addTo(map);
+
+			// fit the map's bounds and zoom level using the dataLayer extent
+			map.fitBounds(dataLayer.getBounds(), {
+				paddingTopLeft: [25, 25] // push off top left for sake of legend
+			});
+
+			addLegend(); // add the legend
+			addUi(dataLayer); // add UI controls
+			updateMap(dataLayer); // update map with the current data attributes
+
+		}
+
+		function updateMap(dataLayer) {
+			// get the class breaks for the current data attribute
+			var breaks = getClassBreaks(dataLayer);
+
+			updateLegend(breaks); // update the legend using breaks
+
+			// loop through each county layer to update the color and tooltip info
+			dataLayer.eachLayer(function(layer) {
+
+				var props = layer.feature.properties;
+
+				// set the fill color of layer based on its normalized data value
+				layer.setStyle({
+					fillColor: getColor(props[attributeValue] /
+						props[normValue], breaks)
+				});
+
+				// assemble string sequence of info for tooltip (end line break with + operator)
+				var tooltipInfo = "<b>" + props["NAME"] +
+													" County</b></br>" +
+													((props[attributeValue] / props[normValue]) * 100).toLocaleString() +
+													"%";
+
+				// bind a tooltip to layer with county-specific information
+				layer.bindTooltip(tooltipInfo, {
+					// sticky property so tooltip follows the mouse
+					sticky: true,
+					tooltipAnchor: [200, 200]
+				});
+
+			});
+		}
+
+		function getClassBreaks(dataLayer) {
+
+			// create empty Array for storing values
+			var values = [];
+
+			// loop through all the counties
+			dataLayer.eachLayer(function(layer) {
+				var value = layer.feature.properties[attributeValue] / layer.feature.properties[normValue];
+				values.push(value); // push the normalized value for each layer into the Array
+			});
+
+			// determine similar clusters
+			var clusters = ss.ckmeans(values, 5);
+
+			// create an array of the lowest value within each cluster
+			var breaks = clusters.map(function(cluster) {
+				return [cluster[0], cluster.pop()];
+			});
+
+			//return array of arrays, e.g., [[0.24,0.25], [0.26, 0.37], etc]
+			return breaks;
+
+		}
+
+		function getColor(d, breaks) {
+			// function accepts a single normalized data attribute value
+			// and uses a series of conditional statements to determine which
+			// which color value to return to return to the function caller
+			// used ColorBrewer for color scheme
+
+			if (d <= breaks[0][1]) {
+				return '#ffffcc';
+			} else if (d <= breaks[1][1]) {
+				return '#a1dab4';
+			} else if (d <= breaks[2][1]) {
+				return '#41b6c4';
+			} else if (d <= breaks[3][1]) {
+				return '#2c7fb8'
+			} else if (d <= breaks[4][1]) {
+				return '#253494'
+			}
+
+		}
+
+		function addLegend() {
+
+			// create a new Leaflet control object, and position it top left
+			var legendControl = L.control({ position: 'topleft' });
+
+			// when the legend is added to the map
+			legendControl.onAdd = function(map) {
+
+				// select a div element with an id attribute of legend
+				var legend = L.DomUtil.get('legend');
+
+				// disable scroll and click/touch on map when on legend
+				L.DomEvent.disableScrollPropagation(legend);
+				L.DomEvent.disableClickPropagation(legend);
+
+				// return the selection to the method
+				return legend;
+
+			};
+
+			// add the empty legend div to the map
+			legendControl.addTo(map);
+
+		}
+
+		function updateLegend(breaks) {
+
+			// select the legend, add a title, begin an unordered list and assign to a variable
+			var legend = $('#legend').html("<h5>" + labels[attributeValue] + "</h5>");
+
+			// loop through the Array of classification break values
+			for (var i = 0; i <= breaks.length - 1; i++) {
+
+				var color = getColor(breaks[i][0], breaks);
+
+				legend.append(
+					'<span style="background:' + color + '"></span> ' +
+					'<label>' + (breaks[i][0] * 100).toLocaleString() + ' &mdash; ' +
+					(breaks[i][1] * 100).toLocaleString() + ' %</label>');
+			};
+
+		}
+
+		function addUi(dataLayer) {
+
+			// create the select control
+			var selectControl = L.control({ position: 'topright' });
+
+			// get ui-controls element when control is added
+			selectControl.onAdd = function(map) {
+				return L.DomUtil.get("ui-controls");
+			}
+
+			// add control to map
+			selectControl.addTo(map);
+
+			$('select[id="occupied"]').change(function() {
+
+				// store reference to currently selected value
+				attributeValue = $(this).val();
+
+				updateMap(dataLayer); // upate map with change in control
+			});
+		}
+
+	</script>
+
+</body>
+
+</html>
