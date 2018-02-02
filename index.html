@@ -18,7 +18,8 @@
 			font-family: Lato, sans-serif;
 		}
 		.container {
-			margin-top: 3rem;
+			margin-top: 3rem;	
+			color: #fff;
 		}
 		#intro {
 			height: 100vh;
@@ -31,6 +32,7 @@
 			border: 2px solid #d3d3d3;
 			height: 540px;
 			margin-bottom: 36px;
+			color: #3d3d3d;
 		}
 		.leaflet-tooltip {
 			min-width: 140px;
@@ -46,7 +48,7 @@
 			max-width: 165px;
 		}
 		#legend h5 {
-			font-size: 2.1rem;
+			font-size: 1.6rem;
 		}
 		#legend span {
 			width: 20px;
@@ -62,6 +64,25 @@
 			display: block;
 			clear: both;
 		}
+
+		.nine.columns, .three.columns {
+					width: 100%;
+		}
+		/* override Skeleton's rule */
+		@media (min-width: 550px) {
+			.nine.columns, .three.columns {
+					width: 100%;
+			}
+		}
+		/* make right col full width until desktop */
+		@media (min-width: 1000px) {
+			.nine.columns {
+				width: 74%;
+			}
+			.three.columns {
+				width: 22%;
+			}
+		}
 	</style>
 </head>
 
@@ -69,14 +90,14 @@
 	<div id="intro">
 		<div class="container">
 			<div class="row">
-				<div class="twelve columns" style="color:#ffffff">
+				<div class="twelve columns">
 					<h1>Families, Housing, and Challenges</h1>
 					<h4>Analysis of Household Composition and Location in West Virginia</h4>
 				</div>
 			</div>
 			<div class="row">
 				<div class="five columns">
-					<p style="color:#ffffff; text-align:justify">
+					<p>
 						In West Virginia, almost half a million children receive food stamps, almost a quarter of a million are enrolled in Medicaid, and almost 100,000 households receive some form of assistance.<br>
 						<br>
 						Out of approximately 722,000 households, almost 50,000 of them pay more than 50% of their income on housing which can place an extreme burden on single-parent or single-income households.<br>
@@ -91,18 +112,18 @@
 	</div>
 	<div id="map-section" class="container">
 		<div class="row">
-			<div class="twelve columns" style="color:#ffffff">
+			<div class="twelve columns">
 				<h3 style="margin-bottom:0">Household by Gender and Marital Status of Parent</h3>
 				<h5 style="margin-top:0">County Level Analysis of West Virginia - 2010</h5>
 			</div>
 		</div>
 		<div class="row">
-			<div id='map' class="ten columns"></div>
-			<div class="two columns" style="color:#ffffff; text-align:justify">
+			<div id='map' class="nine columns"></div>
+			<div class="three columns">
 				<p>In the map to the left, we can see areas of higher density for married couples in darker blue while areas of lower density are in yellow or green (see the <b style="color:#e5bb24">legend in the upper left</b>). We can then select from the <b style="color:#e5bb24">drop down in the upper right</b> male and female householders sans spouse. Notice the percentage differences between the groups.</p>
 			</div>
 		</div>
-		<section class="row" style="color:#ffffff">
+		<section class="row">
 			<div class="three columns">
 				<ul>
 					<li>Author: <a href="https://thejoeblankenship.com/nmp_portfolio/" onclick="window.open('https://thejoeblankenship.com/nmp_portfolio/', '_blank')">Joe Blankenship</a></li>
@@ -368,7 +389,7 @@
 				// store reference to currently selected value
 				attributeValue = $(this).val();
 
-				updateMap(dataLayer); // upate map with change in control
+				updateMap(dataLayer); // update map with change in control
 			});
 		}
 
